@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Элементы решения/">
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Project Path="Infrastructure.LabJournal'/LabJournal.Infrastructure.csproj" />
+  <Project Path="LabJournal.Application/LabJournal.Application.csproj" />
+  <Project Path="LabJournal.Domain/LabJournal.Domain.csproj" />
+  <Project Path="LabJournal.WebApi/LabJournal.WebApi.csproj" Id="f2cf88fd-3917-430d-8133-3215e801ef01" />
+</Solution>
