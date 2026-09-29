@@ -2,7 +2,6 @@
 using LabJournal.Application.Features.Computer.Commands.DeleteComputer;
 using LabJournal.Application.Features.Computer.Query.GetComputers;
 using MediatR;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace LabJournal.WebApi.Endpoints;
 
