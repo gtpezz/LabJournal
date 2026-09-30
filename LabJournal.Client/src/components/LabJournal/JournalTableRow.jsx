@@ -9,10 +9,15 @@ export default function JournalTableRow({
     lastStudent,
     rowIdx,
     onCellClick,
+    onDeleteRow,
 }) {
     return (
         <tr className={rowIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'}>
-            <ComputerCell computer={computer} lastStudent={lastStudent} />
+            <ComputerCell
+                computer={computer}
+                lastStudent={lastStudent}
+                onDeleteRow={onDeleteRow}
+            />
 
             {dates.map((date) => {
                 const key = `${String(computer.name).trim()}__${String(date).slice(0, 10)}`;

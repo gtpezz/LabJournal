@@ -28,10 +28,10 @@ export function useTaskRecords(groupId) {
             });
 
             const list = (res.data?.items ?? res.data ?? [])
-                .filter((r) => r && r.id != null)                
+                .filter((r) => r && r.id != null)
                 .map((r) => ({
                     id: r.id,
-                    date: String(r.date ?? '').slice(0, 10),      
+                    date: String(r.date ?? '').slice(0, 10),
                     computerName: String(r.computerName ?? '').trim(),
                     groupName: String(r.groupName ?? '').trim(),
                     studentFullName: r.studentFullName ?? '',
@@ -96,6 +96,70 @@ export function useTaskRecords(groupId) {
         [groupId, loadRecords]
     );
 
+    const deleteColumnRecords = useCallback(
+        async (date, targetGroupId) => {
+            if (!date || !targetGroupId) throw new Error('Нет даты или группы.');
+
+            const ids = records
+                .filter(
+                    (r) =>
+                        r.id != null &&
+                        String(r.date).slice(0, 10) === String(date).slice(0, 10)
+                )
+                .map((r) => r.id);
+
+            if (ids.length === 0) return 0;
+
+            const results = await Promise.allSettled(
+                ids.map((id) => apiClient.delete(`/api/task-records/${id}`))
+            );
+
+            const failed = results.filter((r) => r.status === 'rejected').length;
+
+            await loadRecords(targetGroupId);
+
+            if (failed > 0) {
+                throw new Error(
+                    `Не удалось удалить ${failed} из ${ids.length} записей.`
+                );
+            }
+            return ids.length;
+        },
+        [records, loadRecords]
+    );
+
+    const deleteRowRecords = useCallback(
+        async (computerName, targetGroupId) => {
+            if (!computerName || !targetGroupId) throw new Error('Нет ПК или группы.');
+
+            const ids = records
+                .filter(
+                    (r) =>
+                        r.id != null &&
+                        String(r.computerName).trim() === String(computerName).trim()
+                )
+                .map((r) => r.id);
+
+            if (ids.length === 0) return 0;
+
+            const results = await Promise.allSettled(
+                ids.map((id) => apiClient.delete(`/api/task-records/${id}`))
+            );
+
+            const failed = results.filter((r) => r.status === 'rejected').length;
+
+            await loadRecords(targetGroupId);
+
+            if (failed > 0) {
+                throw new Error(
+                    `Не удалось удалить ${failed} из ${ids.length} записей.`
+                );
+            }
+            return ids.length;
+        },
+        [records, loadRecords]
+    );
+
     const appendPlaceholderDate = useCallback((date) => {
         setRecords((prev) => [
             ...prev,
@@ -118,6 +182,8 @@ export function useTaskRecords(groupId) {
         reload: () => loadRecords(groupId),
         saveRecord,
         deleteRecord,
+        deleteColumnRecords,
+        deleteRowRecords,
         appendPlaceholderDate,
     };
 }

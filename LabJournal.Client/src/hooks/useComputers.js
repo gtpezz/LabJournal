@@ -33,11 +33,21 @@ export function useComputers() {
         [loadComputers]
     );
 
+    const deleteComputer = useCallback(
+        async (id) => {
+            if (!id) throw new Error('Не указан Id компьютера.');
+            await apiClient.delete(`/api/computers/${id}`);
+            await loadComputers();
+        },
+        [loadComputers]
+    );
+
     return {
         computers,
         loading,
         error,
         reload: loadComputers,
         createComputer,
+        deleteComputer,
     };
 }

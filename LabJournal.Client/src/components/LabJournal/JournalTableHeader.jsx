@@ -1,7 +1,11 @@
 import React from 'react';
-import { formatDateLabel } from '../../utils/date';
 
-export default function JournalTableHeader({ dates, groupName }) {
+export default function JournalTableHeader({
+    dates,
+    groupName,
+    onDeleteColumn,
+    canDeleteColumns,
+}) {
     return (
         <thead>
             <tr>
@@ -33,10 +37,29 @@ export default function JournalTableHeader({ dates, groupName }) {
                 {dates.map((d) => (
                     <th
                         key={d}
-                        className="min-w-[160px] border-b border-r border-slate-300 bg-slate-50 px-4 py-2 text-center text-sm font-semibold text-slate-700"
+                        className="group relative min-w-[160px] border-b border-r border-slate-300 bg-slate-50 px-4 py-2 text-center text-sm font-semibold text-slate-700"
                         title={d}
                     >
-                        {d}
+                        <span className="inline-block max-w-full truncate pr-4">{d}</span>
+
+                        {canDeleteColumns && (
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDeleteColumn(d);
+                                }}
+                                title={`Удалить все записи за ${d}`}
+                                aria-label={`Удалить все записи за ${d}`}
+                                className="
+                  absolute right-1 top-1 flex h-6 w-6 items-center justify-center
+                  rounded-full text-sm text-rose-600 transition hover:bg-rose-100
+                  md:hidden md:group-hover:flex
+                "
+                            >
+                                ×
+                            </button>
+                        )}
                     </th>
                 ))}
             </tr>
