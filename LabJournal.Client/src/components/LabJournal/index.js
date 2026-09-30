@@ -12,3 +12,5 @@ export { default as AddGroupModal } from './AddGroupModal';
 export { default as AddDateModal } from './AddDateModal';
 export { default as LoadingIndicator } from './LoadingIndicator';
 export { default as ErrorBanner } from './ErrorBanner';
+export { default as ManageComputersModal } from './ManageComputersModal';
+export { default as ConfirmDeleteModal } from './ConfirmDeleteModal';

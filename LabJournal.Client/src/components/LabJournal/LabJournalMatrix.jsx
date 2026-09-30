@@ -1,10 +1,13 @@
 import React, { useMemo, useState, useEffect } from 'react';
+
 import JournalToolbar from './JournalToolbar';
 import JournalTable from './JournalTable';
 import CellEditorModal from './CellEditorModal';
 import AddComputerModal from './AddComputerModal';
 import AddGroupModal from './AddGroupModal';
-import AddDateModal from './AddDateModal';   // ← новое
+import AddDateModal from './AddDateModal';
+import ManageComputersModal from './ManageComputersModal';
+import ConfirmDeleteModal from './ConfirmDeleteModal';
 import LoadingIndicator from './LoadingIndicator';
 import ErrorBanner from './ErrorBanner';
 
@@ -15,13 +18,20 @@ import { useExportExcel } from '../../hooks/useExportExcel';
 import { getTodayISO } from '../../utils/date';
 
 export default function LabJournalMatrix() {
-    const { computers, error: computersError, createComputer } = useComputers();
+    const {
+        computers,
+        error: computersError,
+        createComputer,
+        deleteComputer,
+    } = useComputers();
+
     const {
         groups,
         selectedGroupId,
         setSelectedGroupId,
         error: groupsError,
         createGroup,
+        deleteGroup,
     } = useGroups();
 
     const {
@@ -29,6 +39,9 @@ export default function LabJournalMatrix() {
         loading,
         error: recordsError,
         saveRecord,
+        deleteRecord,
+        deleteColumnRecords,
+        deleteRowRecords,
         appendPlaceholderDate,
     } = useTaskRecords(selectedGroupId);
 
@@ -37,6 +50,7 @@ export default function LabJournalMatrix() {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingCell, setEditingCell] = useState(null);
     const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     const [computerModalOpen, setComputerModalOpen] = useState(false);
     const [computerSaving, setComputerSaving] = useState(false);
@@ -44,10 +58,28 @@ export default function LabJournalMatrix() {
     const [groupModalOpen, setGroupModalOpen] = useState(false);
     const [groupSaving, setGroupSaving] = useState(false);
 
-    const [dateModalOpen, setDateModalOpen] = useState(false); // ← новое
+    const [dateModalOpen, setDateModalOpen] = useState(false);
+
+    const [manageComputersOpen, setManageComputersOpen] = useState(false);
+
+    const [confirmGroupOpen, setConfirmGroupOpen] = useState(false);
+    const [groupDeleting, setGroupDeleting] = useState(false);
+    const [groupDeleteError, setGroupDeleteError] = useState(null);
+
+    const [confirmColumn, setConfirmColumn] = useState(null);
+    const [columnDeleting, setColumnDeleting] = useState(false);
+    const [columnError, setColumnError] = useState(null);
+
+    const [confirmRow, setConfirmRow] = useState(null);
+    const [rowDeleting, setRowDeleting] = useState(false);
+    const [rowError, setRowError] = useState(null);
 
     const dates = useMemo(() => {
-        const set = new Set(records.map((r) => String(r.date).slice(0, 10)).filter(Boolean));
+        const set = new Set(
+            records
+                .map((r) => String(r.date ?? '').slice(0, 10))
+                .filter(Boolean)
+        );
         return Array.from(set).sort();
     }, [records]);
 
@@ -78,6 +110,50 @@ export default function LabJournalMatrix() {
     );
 
     const handleGroupChange = (e) => setSelectedGroupId(e.target.value);
+
+    const handleCreateGroup = async (payload) => {
+        setGroupSaving(true);
+        try {
+            await createGroup(payload);
+        } finally {
+            setGroupSaving(false);
+        }
+    };
+
+    const handleOpenDeleteGroup = () => {
+        setGroupDeleteError(null);
+        setConfirmGroupOpen(true);
+    };
+
+    const handleConfirmDeleteGroup = async () => {
+        setGroupDeleting(true);
+        setGroupDeleteError(null);
+        try {
+            await deleteGroup(selectedGroupId);
+            setConfirmGroupOpen(false);
+        } catch (err) {
+            setGroupDeleteError(
+                err.userMessage ??
+                err.message ??
+                'Не удалось удалить группу. Возможно, в ней есть записи.'
+            );
+        } finally {
+            setGroupDeleting(false);
+        }
+    };
+
+    const handleCreateComputer = async (payload) => {
+        setComputerSaving(true);
+        try {
+            await createComputer(payload);
+        } finally {
+            setComputerSaving(false);
+        }
+    };
+
+    const handleDeleteComputer = async (id) => {
+        await deleteComputer(id);
+    };
 
     const handleAddToday = () => {
         const today = getTodayISO();
@@ -110,10 +186,19 @@ export default function LabJournalMatrix() {
             });
             setModalOpen(false);
             setEditingCell(null);
-        } catch (err) {
-            console.error('Ошибка сохранения:', err);
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleDeleteCell = async (recordId) => {
+        setDeleting(true);
+        try {
+            await deleteRecord(recordId);
+            setModalOpen(false);
+            setEditingCell(null);
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -122,22 +207,63 @@ export default function LabJournalMatrix() {
         setEditingCell(null);
     };
 
-    const handleCreateComputer = async (payload) => {
-        setComputerSaving(true);
+    const handleOpenDeleteColumn = (date) => {
+        const count = records.filter(
+            (r) =>
+                r.id != null &&
+                String(r.date).slice(0, 10) === String(date).slice(0, 10)
+        ).length;
+        if (count === 0) return;
+        setColumnError(null);
+        setConfirmColumn({ date, count });
+    };
+
+    const handleConfirmDeleteColumn = async () => {
+        if (!confirmColumn) return;
+        setColumnDeleting(true);
+        setColumnError(null);
         try {
-            await createComputer(payload);
+            await deleteColumnRecords(confirmColumn.date, selectedGroupId);
+            setConfirmColumn(null);
+        } catch (err) {
+            setColumnError(
+                err.userMessage ?? err.message ?? 'Не удалось удалить записи столбца.'
+            );
         } finally {
-            setComputerSaving(false);
+            setColumnDeleting(false);
         }
     };
 
-    const handleCreateGroup = async (payload) => {
-        setGroupSaving(true);
+    const handleOpenDeleteRow = (computer) => {
+        const count = records.filter(
+            (r) =>
+                r.id != null &&
+                String(r.computerName).trim() === String(computer.name).trim()
+        ).length;
+        if (count === 0) return;
+        setRowError(null);
+        setConfirmRow({ computer, count });
+    };
+
+    const handleConfirmDeleteRow = async () => {
+        if (!confirmRow) return;
+        setRowDeleting(true);
+        setRowError(null);
         try {
-            await createGroup(payload);
+            await deleteRowRecords(confirmRow.computer.name, selectedGroupId);
+            setConfirmRow(null);
+        } catch (err) {
+            setRowError(
+                err.userMessage ?? err.message ?? 'Не удалось удалить записи ПК.'
+            );
         } finally {
-            setGroupSaving(false);
+            setRowDeleting(false);
         }
+    };
+
+    const handleExport = () => {
+        if (!selectedGroupId) return;
+        exportExcel(selectedGroupId);
     };
 
     const errorMessage =
@@ -152,10 +278,12 @@ export default function LabJournalMatrix() {
                 onAddToday={handleAddToday}
                 addTodayDisabled={!selectedGroupId || dates.includes(getTodayISO())}
                 onAddDate={() => setDateModalOpen(true)}
-                onExport={() => exportExcel(selectedGroupId)}
+                onExport={handleExport}
                 exporting={exporting}
                 onAddComputer={() => setComputerModalOpen(true)}
                 onAddGroup={() => setGroupModalOpen(true)}
+                onDeleteGroup={handleOpenDeleteGroup}
+                onManageComputers={() => setManageComputersOpen(true)}
                 hasGroup={Boolean(selectedGroupId)}
             />
 
@@ -168,6 +296,8 @@ export default function LabJournalMatrix() {
                 recordMap={recordMap}
                 lastStudentByComputer={lastStudentByComputer}
                 onCellClick={handleCellClick}
+                onDeleteColumn={handleOpenDeleteColumn}
+                onDeleteRow={handleOpenDeleteRow}
                 groupName={selectedGroup?.name ?? selectedGroup?.title ?? ''}
             />
 
@@ -175,8 +305,10 @@ export default function LabJournalMatrix() {
                 open={modalOpen}
                 onClose={handleCloseModal}
                 onSave={handleSaveCell}
+                onDelete={handleDeleteCell}
                 initialData={editingCell?.record ?? null}
                 saving={saving}
+                deleting={deleting}
                 meta={editingCell}
             />
 
@@ -199,6 +331,47 @@ export default function LabJournalMatrix() {
                 onClose={() => setDateModalOpen(false)}
                 onAdd={handleAddDate}
                 existingDates={dates}
+            />
+
+            <ManageComputersModal
+                open={manageComputersOpen}
+                onClose={() => setManageComputersOpen(false)}
+                computers={computers}
+                onDelete={handleDeleteComputer}
+            />
+
+            <ConfirmDeleteModal
+                open={confirmGroupOpen}
+                onClose={() => setConfirmGroupOpen(false)}
+                onConfirm={handleConfirmDeleteGroup}
+                title="Удалить текущую группу?"
+                description={`Группа «${selectedGroup?.name ?? selectedGroupId
+                    }» будет удалена безвозвратно. Если в ней есть записи, удаление не пройдёт.`}
+                confirmLabel="Удалить группу"
+                busy={groupDeleting}
+                error={groupDeleteError}
+            />
+
+            <ConfirmDeleteModal
+                open={Boolean(confirmColumn)}
+                onClose={() => setConfirmColumn(null)}
+                onConfirm={handleConfirmDeleteColumn}
+                title={`Удалить все записи за ${confirmColumn?.date}?`}
+                description={`Будет удалено ${confirmColumn?.count} запис. Действие необратимо.`}
+                confirmLabel="Удалить записи"
+                busy={columnDeleting}
+                error={columnError}
+            />
+
+            <ConfirmDeleteModal
+                open={Boolean(confirmRow)}
+                onClose={() => setConfirmRow(null)}
+                onConfirm={handleConfirmDeleteRow}
+                title={`Удалить все записи для «${confirmRow?.computer?.name}»?`}
+                description={`Будет удалено ${confirmRow?.count} записей(-ись). Действие необратимо.`}
+                confirmLabel="Удалить записи"
+                busy={rowDeleting}
+                error={rowError}
             />
         </div>
     );

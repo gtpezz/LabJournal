@@ -13,6 +13,8 @@ export default function JournalToolbar({
     exporting,
     onAddComputer,
     onAddGroup,
+    onDeleteGroup,
+    onManageComputers,
     hasGroup,
 }) {
     return (
@@ -29,6 +31,7 @@ export default function JournalToolbar({
             <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
                     <label className="text-sm font-medium text-slate-600">Группа:</label>
+
                     <Select value={selectedGroupId} onChange={onGroupChange}>
                         {groups.length === 0 && <option value="">— нет групп —</option>}
                         {groups.map((g) => (
@@ -37,6 +40,7 @@ export default function JournalToolbar({
                             </option>
                         ))}
                     </Select>
+
                     <Button
                         variant="outline"
                         onClick={onAddGroup}
@@ -45,10 +49,32 @@ export default function JournalToolbar({
                     >
                         +
                     </Button>
+
+                    <Button
+                        variant="outline"
+                        onClick={onDeleteGroup}
+                        disabled={!hasGroup}
+                        title="Удалить текущую группу"
+                        className="!px-3 !text-rose-600 hover:!bg-rose-50"
+                    >
+                        🗑
+                    </Button>
                 </div>
 
-                <Button variant="outline" onClick={onAddComputer}>
+                <Button
+                    variant="outline"
+                    onClick={onAddComputer}
+                    title="Добавить компьютер"
+                >
                     🖥 Добавить ПК
+                </Button>
+
+                <Button
+                    variant="outline"
+                    onClick={onManageComputers}
+                    title="Управление компьютерами (удаление)"
+                >
+                    ⚙ ПК
                 </Button>
 
                 <Button
@@ -73,6 +99,7 @@ export default function JournalToolbar({
                     variant="success"
                     onClick={onExport}
                     disabled={!hasGroup || exporting}
+                    title="Выгрузить отчёт в Excel"
                 >
                     {exporting ? 'Выгрузка…' : '📊 Выгрузить в Excel'}
                 </Button>

@@ -47,6 +47,19 @@ export function useGroups() {
         [loadGroups]
     );
 
+    const deleteGroup = useCallback(
+        async (id) => {
+            if (!id) throw new Error('Не указан Id группы.');
+            await apiClient.delete(`/api/groups/${id}`);
+            const list = await loadGroups();
+            setSelectedGroupId((prev) => {
+                if (String(prev) !== String(id)) return prev;
+                return list.length > 0 ? String(list[0].id) : '';
+            });
+        },
+        [loadGroups]
+    );
+
     return {
         groups,
         selectedGroupId,
@@ -55,5 +68,6 @@ export function useGroups() {
         error,
         reload: loadGroups,
         createGroup,
+        deleteGroup,
     };
 }

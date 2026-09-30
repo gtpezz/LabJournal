@@ -8,13 +8,20 @@ export default function JournalTable({
     recordMap,
     lastStudentByComputer,
     onCellClick,
+    onDeleteColumn,      
+    onDeleteRow,         
     groupName,
 }) {
     return (
         <div className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
             <div className="overflow-x-auto">
                 <table className="min-w-full border-collapse text-sm">
-                    <JournalTableHeader dates={dates} groupName={groupName} />
+                    <JournalTableHeader
+                        dates={dates}
+                        groupName={groupName}
+                        onDeleteColumn={onDeleteColumn}
+                        canDeleteColumns={Boolean(onDeleteColumn) && dates.length > 0}
+                    />
 
                     <tbody>
                         {computers.map((computer, rowIdx) => (
@@ -23,9 +30,12 @@ export default function JournalTable({
                                 computer={computer}
                                 dates={dates}
                                 recordMap={recordMap}
-                                lastStudent={lastStudentByComputer.get(String(computer.name).trim())}
+                                lastStudent={lastStudentByComputer.get(
+                                    String(computer.name).trim()
+                                )}
                                 rowIdx={rowIdx}
                                 onCellClick={onCellClick}
+                                onDeleteRow={onDeleteRow}
                             />
                         ))}
 
@@ -35,14 +45,7 @@ export default function JournalTable({
                                     colSpan={dates.length + 1}
                                     className="px-4 py-8 text-center text-sm text-slate-400"
                                 >
-                                    Нет данных о компьютерах.{' '}
-                                    <button
-                                        type="button"
-                                        onClick={() => onAddComputer?.()}
-                                        className="font-medium text-sky-600 hover:underline"
-                                    >
-                                        Добавить первый ПК
-                                    </button>
+                                    Нет данных о компьютерах
                                 </td>
                             </tr>
                         )}
