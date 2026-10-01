@@ -8,8 +8,8 @@ export default function JournalTable({
     recordMap,
     lastStudentByComputer,
     onCellClick,
-    onDeleteColumn,      
-    onDeleteRow,         
+    onDeleteColumn,
+    onDeleteRow,
     groupName,
 }) {
     return (
@@ -30,9 +30,7 @@ export default function JournalTable({
                                 computer={computer}
                                 dates={dates}
                                 recordMap={recordMap}
-                                lastStudent={lastStudentByComputer.get(
-                                    String(computer.name).trim()
-                                )}
+                                lastStudent={lastStudentByComputer.get(String(computer.id))}
                                 rowIdx={rowIdx}
                                 onCellClick={onCellClick}
                                 onDeleteRow={onDeleteRow}
