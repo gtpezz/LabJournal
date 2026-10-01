@@ -6,4 +6,5 @@ namespace LabJournal.Application.Features.Computer.Commands.CreateCommand;
 public class CreateComputerCommand : IRequest<ComputerDto>
 {
     public string Name { get; set; } = string.Empty;
+    public int GroupId { get; set; }
 }

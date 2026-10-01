@@ -8,6 +8,9 @@ public class TaskRecordDto
     public string ComputerName { get; set; } = string.Empty;
     public string GroupName { get; set; } = string.Empty;
     public string StudentFullName { get; set; } = string.Empty;
+
+    public int ComputerId { get; set; }
+    public int GroupId { get; set; }
     
 
     public string TaskDone { get; set; } = string.Empty;

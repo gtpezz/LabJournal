@@ -14,16 +14,24 @@ public class GetComputersQueryHandler(IApplicationDbContext context, IMapper map
 
     public async Task<PagedResponse<ComputerDto>> Handle(GetComputersQuery request, CancellationToken cancellationToken)
     {
-        var totalCount = await context.Computers.CountAsync(cancellationToken);
+        var query = context.Computers.AsQueryable();
 
-        var items = await context.Computers
-            .Include(c => c.TaskRecords)
-            .AsNoTracking()
+        if (request.GroupId.HasValue)
+            query = query.Where(c => c.GroupId == request.GroupId.Value);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderBy(c => c.Name)
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
             .ProjectTo<ComputerDto>(mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
 
-        return new PagedResponse<ComputerDto>(items, totalCount, request.PageNumber, request.PageSize);
+        return new PagedResponse<ComputerDto>(
+            items,
+            totalCount,
+            request.PageNumber,
+            request.PageSize);
     }
 }

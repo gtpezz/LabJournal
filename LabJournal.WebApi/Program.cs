@@ -11,6 +11,8 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+OfficeOpenXml.ExcelPackage.License.SetNonCommercialPersonal("LabJournal");
+
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
     options.MinimumSameSitePolicy = builder.Environment.IsDevelopment()

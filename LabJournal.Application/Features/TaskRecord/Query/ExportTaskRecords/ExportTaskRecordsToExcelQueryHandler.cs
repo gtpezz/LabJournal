@@ -1,12 +1,11 @@
 ﻿using LabJournal.Application.Common.Interfaces;
-using LabJournal.Application.Features.TaskRecord.Query.ExportTaskRecords;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using System.Drawing;
 
-namespace LabJournal.Application.Features.TaskRecords.Queries.ExportTaskRecords;
+namespace LabJournal.Application.Features.TaskRecord.Query.ExportTaskRecords;
 
 public class ExportTaskRecordsToExcelQueryHandler(IApplicationDbContext context)
     : IRequestHandler<ExportTaskRecordsToExcelQuery, byte[]>
@@ -45,7 +44,7 @@ public class ExportTaskRecordsToExcelQueryHandler(IApplicationDbContext context)
         {
             headerRange.Style.Font.Bold = true;
             headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
-            headerRange.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(230, 230, 230)); // Светло-серый оттенок
+            headerRange.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(230, 230, 230));
             headerRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
             headerRange.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
         }

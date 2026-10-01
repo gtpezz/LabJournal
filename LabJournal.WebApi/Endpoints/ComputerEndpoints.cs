@@ -2,6 +2,7 @@
 using LabJournal.Application.Features.Computer.Commands.DeleteComputer;
 using LabJournal.Application.Features.Computer.Query.GetComputers;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LabJournal.WebApi.Endpoints;
 
@@ -11,15 +12,19 @@ public class ComputerEndpoints : IEndpointModule
     {
         var group = app.MapGroup("/api/computers").WithTags("Computers");
 
-        group.MapGet("/", async (int? pageSize, int? pageNumber, ISender sender, CancellationToken ct) =>
+        group.MapGet("/", async (
+            [FromQuery] int? pageSize,
+            [FromQuery] int? pageNumber,
+            [FromQuery] int? groupId,
+            ISender sender, CancellationToken ct) =>
         {
-            var items = await sender.Send(new GetComputersQuery
+            var result = await sender.Send(new GetComputersQuery
             {
                 PageNumber = pageNumber ?? 1,
                 PageSize = pageSize ?? 10,
+                GroupId = groupId,
             }, ct);
-
-            return Results.Ok(items);
+            return Results.Ok(result);
         });
 
         group.MapPost("/", async (CreateComputerCommand command, ISender sender, CancellationToken ct) =>

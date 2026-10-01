@@ -7,6 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="EPPlus" />
+    <PackageReference Include="EPPlus.Interfaces" />
+    <PackageReference Include="EPPlus.System.Drawing" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
@@ -22,8 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Infrastructure.LabJournal'\LabJournal.Infrastructure.csproj" />
     <ProjectReference Include="..\LabJournal.Application\LabJournal.Application.csproj" />
+    <ProjectReference Include="..\LabJournal.Infrastructure\LabJournal.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

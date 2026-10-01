@@ -30,6 +30,9 @@ namespace LabJournal.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("GroupId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -37,7 +40,7 @@ namespace LabJournal.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("GroupId", "Name")
                         .IsUnique();
 
                     b.ToTable("Computers");
@@ -136,6 +139,17 @@ namespace LabJournal.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("LabJournal.Domain.Entities.Computer", b =>
+                {
+                    b.HasOne("LabJournal.Domain.Entities.Group", "Group")
+                        .WithMany("Computers")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+                });
+
             modelBuilder.Entity("LabJournal.Domain.Entities.TaskRecord", b =>
                 {
                     b.HasOne("LabJournal.Domain.Entities.Computer", "Computer")
@@ -162,6 +176,8 @@ namespace LabJournal.Infrastructure.Migrations
 
             modelBuilder.Entity("LabJournal.Domain.Entities.Group", b =>
                 {
+                    b.Navigation("Computers");
+
                     b.Navigation("TaskRecords");
                 });
 #pragma warning restore 612, 618

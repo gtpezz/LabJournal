@@ -8,8 +8,7 @@ public class ComputerConfiguration : IEntityTypeConfiguration<Computer>
 {
     public void Configure(EntityTypeBuilder<Computer> builder)
     {
-        builder
-            .HasKey(c => c.Id);
+        builder.HasKey(c => c.Id);
 
         builder
             .HasMany(c => c.TaskRecords)
@@ -23,7 +22,13 @@ public class ComputerConfiguration : IEntityTypeConfiguration<Computer>
             .HasMaxLength(200);
 
         builder
-            .HasIndex(c => c.Name)
+            .HasOne(c => c.Group)
+            .WithMany(g => g.Computers)
+            .HasForeignKey(c => c.GroupId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasIndex(c => new { c.GroupId, c.Name })
             .IsUnique();
     }
 }
