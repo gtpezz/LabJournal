@@ -32,12 +32,16 @@ export function useTaskRecords(groupId) {
                 .map((r) => ({
                     id: r.id,
                     date: String(r.date ?? '').slice(0, 10),
+                    computerId: r.computerId ?? null,
                     computerName: String(r.computerName ?? '').trim(),
+                    groupId: r.groupId ?? null,
                     groupName: String(r.groupName ?? '').trim(),
                     studentFullName: r.studentFullName ?? '',
                     taskDone: r.taskDone ?? '',
                     createdAt: r.createdAt ?? null,
                 }));
+
+            setRecords(list);
 
             setRecords(list);
         } catch (err) {
@@ -129,15 +133,11 @@ export function useTaskRecords(groupId) {
     );
 
     const deleteRowRecords = useCallback(
-        async (computerName, targetGroupId) => {
-            if (!computerName || !targetGroupId) throw new Error('Нет ПК или группы.');
+        async (computerId, targetGroupId) => {
+            if (!computerId || !targetGroupId) throw new Error('Нет ПК или группы.');
 
             const ids = records
-                .filter(
-                    (r) =>
-                        r.id != null &&
-                        String(r.computerName).trim() === String(computerName).trim()
-                )
+                .filter((r) => r.id != null && String(r.computerId) === String(computerId))
                 .map((r) => r.id);
 
             if (ids.length === 0) return 0;
@@ -145,15 +145,12 @@ export function useTaskRecords(groupId) {
             const results = await Promise.allSettled(
                 ids.map((id) => apiClient.delete(`/api/task-records/${id}`))
             );
-
             const failed = results.filter((r) => r.status === 'rejected').length;
 
             await loadRecords(targetGroupId);
 
             if (failed > 0) {
-                throw new Error(
-                    `Не удалось удалить ${failed} из ${ids.length} записей.`
-                );
+                throw new Error(`Не удалось удалить ${failed} из ${ids.length} записей.`);
             }
             return ids.length;
         },

@@ -20,7 +20,7 @@ export default function JournalTableRow({
             />
 
             {dates.map((date) => {
-                const key = `${String(computer.name).trim()}__${String(date).slice(0, 10)}`;
+                const key = `${String(computer.id)}__${String(date).slice(0, 10)}`;
                 const record = recordMap.get(key);
                 return (
                     <TaskCell

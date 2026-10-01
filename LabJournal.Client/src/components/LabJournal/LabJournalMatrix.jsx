@@ -18,12 +18,6 @@ import { useExportExcel } from '../../hooks/useExportExcel';
 import { getTodayISO } from '../../utils/date';
 
 export default function LabJournalMatrix() {
-    const {
-        computers,
-        error: computersError,
-        createComputer,
-        deleteComputer,
-    } = useComputers();
 
     const {
         groups,
@@ -33,6 +27,13 @@ export default function LabJournalMatrix() {
         createGroup,
         deleteGroup,
     } = useGroups();
+
+    const {
+        computers,
+        error: computersError,
+        createComputer,
+        deleteComputer,
+    } = useComputers(selectedGroupId);
 
     const {
         records,
@@ -86,8 +87,8 @@ export default function LabJournalMatrix() {
     const recordMap = useMemo(() => {
         const map = new Map();
         records.forEach((r) => {
-            if (!r.computerName || !r.date) return;
-            const key = `${String(r.computerName).trim()}__${String(r.date).slice(0, 10)}`;
+            if (r.computerId == null || !r.date) return;
+            const key = `${r.computerId}__${String(r.date).slice(0, 10)}`;
             map.set(key, r);
         });
         return map;
@@ -96,8 +97,8 @@ export default function LabJournalMatrix() {
     const lastStudentByComputer = useMemo(() => {
         const map = new Map();
         records.forEach((r) => {
-            if (!r.studentFullName || !r.computerName) return;
-            const key = String(r.computerName).trim();
+            if (!r.studentFullName || r.computerId == null) return;
+            const key = String(r.computerId);
             const prev = map.get(key);
             if (!prev || prev.date < r.date) map.set(key, r);
         });
@@ -143,6 +144,9 @@ export default function LabJournalMatrix() {
     };
 
     const handleCreateComputer = async (payload) => {
+        if (!selectedGroupId) {
+            throw new Error('Сначала выберите группу.');
+        }
         setComputerSaving(true);
         try {
             await createComputer(payload);
@@ -236,9 +240,7 @@ export default function LabJournalMatrix() {
 
     const handleOpenDeleteRow = (computer) => {
         const count = records.filter(
-            (r) =>
-                r.id != null &&
-                String(r.computerName).trim() === String(computer.name).trim()
+            (r) => r.id != null && String(r.computerId) === String(computer.id)
         ).length;
         if (count === 0) return;
         setRowError(null);
@@ -250,7 +252,7 @@ export default function LabJournalMatrix() {
         setRowDeleting(true);
         setRowError(null);
         try {
-            await deleteRowRecords(confirmRow.computer.name, selectedGroupId);
+            await deleteRowRecords(confirmRow.computer.id, selectedGroupId);
             setConfirmRow(null);
         } catch (err) {
             setRowError(
@@ -368,7 +370,7 @@ export default function LabJournalMatrix() {
                 onClose={() => setConfirmRow(null)}
                 onConfirm={handleConfirmDeleteRow}
                 title={`Удалить все записи для «${confirmRow?.computer?.name}»?`}
-                description={`Будет удалено ${confirmRow?.count} записей(-ись). Действие необратимо.`}
+                description={`Будет удалено ${confirmRow?.count} запис. Действие необратимо.`}
                 confirmLabel="Удалить записи"
                 busy={rowDeleting}
                 error={rowError}
