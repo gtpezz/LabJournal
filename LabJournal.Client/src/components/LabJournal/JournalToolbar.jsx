@@ -1,6 +1,7 @@
 import React from 'react';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
+import UserMenu from '../auth/UserMenu';
 
 export default function JournalToolbar({
     groups,
@@ -103,6 +104,8 @@ export default function JournalToolbar({
                 >
                     {exporting ? 'Выгрузка…' : '📊 Выгрузить в Excel'}
                 </Button>
+
+                <UserMenu />
             </div>
         </div>
     );
